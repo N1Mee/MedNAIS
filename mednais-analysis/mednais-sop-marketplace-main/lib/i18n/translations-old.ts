@@ -1,0 +1,68 @@
+export const translations = {
+  en: {
+    common: {
+      signIn: 'Sign In',
+      signUp: 'Sign Up',
+      getStarted: 'Get Started',
+      learnMore: 'Learn More',
+    },
+    nav: {
+      home: 'Home',
+      marketplace: 'Marketplace',
+      mySops: 'My SOPs',
+      groups: 'Groups',
+      dashboard: 'Dashboard',
+    },
+    home: {
+      heroTitle: 'Create, Share, and Execute Standard Operating Procedures',
+      heroSubtitle: 'Streamline your workflows with AI-powered SOP management',
+      featuresTitle: 'Everything You Need for SOP Management',
+      createTitle: 'Create SOPs',
+      createDesc: 'Build comprehensive procedures with our intuitive interface',
+      marketplaceTitle: 'SOP Marketplace',
+      marketplaceDesc: 'Discover and purchase pre-made SOPs from experts',
+      executeTitle: 'Execute with Confidence',
+      executeDesc: 'Step-by-step guidance ensures perfect execution every time',
+      trackTitle: 'Track Progress',
+      trackDesc: 'Monitor completion rates and identify bottlenecks',
+      collaborateTitle: 'Collaborate in Groups',
+      collaborateDesc: 'Share SOPs and work together seamlessly',
+      secureTitle: 'Secure & Reliable',
+      secureDesc: 'Enterprise-grade security for your sensitive procedures',
+    },
+  },
+  ru: {
+    common: {
+      signIn: 'Войти',
+      signUp: 'Регистрация',
+      getStarted: 'Начать',
+      learnMore: 'Узнать больше',
+    },
+    nav: {
+      home: 'Главная',
+      marketplace: 'Маркетплейс',
+      mySops: 'Мои СОП',
+      groups: 'Группы',
+      dashboard: 'Панель управления',
+    },
+    home: {
+      heroTitle: 'Создавайте, делитесь и выполняйте стандартные операционные процедуры',
+      heroSubtitle: 'Оптимизируйте рабочие процессы с помощью управления СОП на базе ИИ',
+      featuresTitle: 'Всё необходимое для управления СОП',
+      createTitle: 'Создание СОП',
+      createDesc: 'Создавайте полные процедуры с помощью интуитивно понятного интерфейса',
+      marketplaceTitle: 'Маркетплейс СОП',
+      marketplaceDesc: 'Находите и приобретайте готовые СОП от экспертов',
+      executeTitle: 'Выполняйте с уверенностью',
+      executeDesc: 'Пошаговое руководство обеспечивает идеальное выполнение каждый раз',
+      trackTitle: 'Отслеживание прогресса',
+      trackDesc: 'Отслеживайте показатели завершения и выявляйте узкие места',
+      collaborateTitle: 'Совместная работа в группах',
+      collaborateDesc: 'Делитесь СОП и работайте вместе без проблем',
+      secureTitle: 'Безопасность и надёжность',
+      secureDesc: 'Корпоративная безопасность для ваших конфиденциальных процедур',
+    },
+  },
+};
+
+export type TranslationKey = keyof typeof translations.en;
