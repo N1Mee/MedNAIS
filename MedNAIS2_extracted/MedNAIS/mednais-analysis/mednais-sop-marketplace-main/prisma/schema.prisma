@@ -1,0 +1,384 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native"]
+}
+
+generator db {
+    provider = "prisma-client-py"
+    interface = "asyncio"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// Enums
+enum SOPType {
+  PERSONAL
+  GROUP
+  MARKETPLACE
+}
+
+enum GroupMembershipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ExecutionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+// User model
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String?   @unique
+  name          String?
+  avatar_url    String?
+  bio           String?
+  location      String?
+  website       String?
+  twitter       String?
+  linkedin      String?
+  github        String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  authProviders        AuthProvider[]
+  refreshTokens        RefreshToken[]
+  sops                 SOP[]                @relation("UserSOPs")
+  ownedGroups          Group[]              @relation("GroupOwner")
+  memberOf             Group[]              @relation("GroupMembers")
+  groupMemberships     GroupMembership[]
+  purchasedSOPs        Purchase[]           @relation("SOPPurchaser")
+  soldSOPs             Purchase[]           @relation("SOPSeller")
+  executions           SOPExecution[]
+  ratings              Rating[]
+  categorySuggestions  CategorySuggestion[]
+  
+  @@map("users")
+}
+
+// Auth providers
+model AuthProvider {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  provider        String   // 'email' | 'google' | 'apple'
+  providerUserId  String   @map("provider_user_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerUserId])
+  @@map("auth_providers")
+}
+
+// Magic links for email authentication
+model MagicLink {
+  id        String    @id @default(uuid())
+  email     String
+  token     String    @unique
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  
+  @@index([token])
+  @@index([email])
+  @@map("magic_links")
+}
+
+// Refresh tokens
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  token     String    @unique
+  userAgent String?   @map("user_agent")
+  ip        String?
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+// SOP (Standard Operating Procedure) model
+model SOP {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  type        SOPType  @default(PERSONAL)
+  price       Float?   // Price in cents for marketplace SOPs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  creatorId String
+  creator   User   @relation("UserSOPs", fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  groupId   String? // For group SOPs
+  group     Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  categoryId String? // Category for organization
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  steps      SOPStep[]
+  purchases  Purchase[]
+  executions SOPExecution[]
+  ratings    Rating[]
+  cartItems  CartItem[]
+
+  @@map("sops")
+}
+
+// SOP Step model
+model SOPStep {
+  id          String  @id @default(cuid())
+  sopId       String
+  order       Int
+  title       String
+  description String
+  imageId     String? // Cloud storage key/UUID for flexibility
+  youtubeUrl  String?
+  timerSeconds Int?    // Optional timer for the step
+  references  String? // References/sources for this step (stored as JSON array)
+  question    String? // Optional question for the step
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  sop           SOP             @relation(fields: [sopId], references: [id], onDelete: Cascade)
+  stepExecutions StepExecution[]
+
+  @@map("sop_steps")
+}
+
+// Group model
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  inviteCode  String   @unique // Unique invite code
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  ownerId     String
+  owner       User              @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     User[]            @relation("GroupMembers")
+  memberships GroupMembership[]
+  sops        SOP[]
+
+  @@map("groups")
+}
+
+// Group Membership model
+model GroupMembership {
+  id        String                @id @default(cuid())
+  status    GroupMembershipStatus @default(PENDING)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  // Relations
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("group_memberships")
+}
+
+// Purchase model
+model Purchase {
+  id              String   @id @default(cuid())
+  price           Float    // Total price in cents
+  platformFee     Float    // Platform commission (30%)
+  creatorRevenue  Float    // Creator revenue (70%)
+  stripePaymentId String?  // Stripe payment intent ID
+  createdAt       DateTime @default(now())
+
+  // Relations
+  buyerId  String
+  buyer    User   @relation("SOPPurchaser", fields: [buyerId], references: [id], onDelete: Cascade)
+  
+  sellerId String
+  seller   User   @relation("SOPSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  sopId String
+  sop   SOP    @relation(fields: [sopId], references: [id], onDelete: Cascade)
+
+  @@map("purchases")
+}
+
+// SOP Execution model
+model SOPExecution {
+  id          String          @id @default(cuid())
+  status      ExecutionStatus @default(IN_PROGRESS)
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+  totalTimeSeconds Int?        // Total execution time in seconds
+  
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  sopId String
+  sop   SOP    @relation(fields: [sopId], references: [id], onDelete: Cascade)
+
+  stepExecutions StepExecution[]
+
+  @@map("sop_executions")
+}
+
+// Step Execution model (tracks time spent on each step)
+model StepExecution {
+  id           String @id @default(cuid())
+  timeSeconds  Int    // Time spent on this step in seconds
+  answer       Boolean? // Answer to question (true = Yes, false = No, null = no question)
+  completedAt  DateTime @default(now())
+
+  // Relations
+  executionId String
+  execution   SOPExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  
+  stepId String
+  step   SOPStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@map("step_executions")
+}
+
+// Category model for organizing SOPs
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  parentId    String?  // For subcategories
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  parent       Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  subcategories Category[] @relation("CategoryHierarchy")
+  sops        SOP[]
+  suggestions CategorySuggestion[]
+
+  @@map("categories")
+}
+
+// Category Suggestion model - users can suggest new categories
+model CategorySuggestion {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  categoryId String? // If approved, link to created category
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@map("category_suggestions")
+}
+
+// Rating model - users can rate SOPs
+model Rating {
+  id        String   @id @default(cuid())
+  rating    Int      // Rating value (1-5 stars)
+  comment   String?  // Optional comment
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  sopId String
+  sop   SOP    @relation(fields: [sopId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sopId]) // User can only rate a SOP once
+  @@map("ratings")
+}
+
+// PaymentTransaction model - tracks all Stripe payment transactions
+model PaymentTransaction {
+  id            String   @id @default(cuid())
+  sessionId     String   @unique @map("session_id") // Stripe checkout session ID
+  paymentId     String?  @map("payment_id") // Stripe payment intent ID
+  amount        Float    // Amount in dollars (e.g., 10.00)
+  currency      String   @default("usd")
+  status        String   @default("PENDING") // PENDING, COMPLETED, FAILED, EXPIRED
+  paymentStatus String?  @map("payment_status") // Stripe payment status
+  metadata      Json?    // Additional metadata (sop_id, user_email, etc.)
+  userId        String?  @map("user_id") // User who made the payment (optional if guest)
+  userEmail     String?  @map("user_email") // Email of the user
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([sessionId])
+  @@index([userId])
+  @@map("payment_transactions")
+}
+
+// Cart model - shopping cart for users
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique @map("user_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  
+  items     CartItem[]
+
+  @@map("carts")
+}
+
+// CartItem model - items in shopping cart
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String   @map("cart_id")
+  sopId     String   @map("sop_id")
+  addedAt   DateTime @default(now()) @map("added_at")
+  
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  sop       SOP      @relation(fields: [sopId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, sopId]) // Prevent duplicate items in cart
+  @@map("cart_items")
+}
+
+// PromoCode model - discount codes for purchases
+model PromoCode {
+  id              String   @id @default(cuid())
+  code            String   @unique // Promo code (e.g., "SAVE20")
+  discountType    String   // "PERCENTAGE" or "FIXED"
+  discountValue   Float    // 20 for 20% or 5.00 for $5 off
+  minPurchase     Float?   @map("min_purchase") // Minimum purchase amount required
+  maxDiscount     Float?   @map("max_discount") // Maximum discount amount for percentage codes
+  maxUses         Int?     @map("max_uses") // Maximum number of uses (null = unlimited)
+  currentUses     Int      @default(0) @map("current_uses") // Current number of uses
+  isActive        Boolean  @default(true) @map("is_active")
+  startsAt        DateTime? @map("starts_at") // When code becomes active
+  expiresAt       DateTime? @map("expires_at") // When code expires
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([code])
+  @@index([isActive])
+  @@map("promo_codes")
+}

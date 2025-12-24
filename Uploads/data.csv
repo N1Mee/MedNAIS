@@ -1,0 +1,9 @@
+amount,createdAt,id,platformFee,promoCodeId,sellerRevenue,sopId,status,stripePaymentId,stripeSessionId,updatedAt,userId
+9.99,2025-12-13T15:00:44.180000,cmj4fay370004ph08yzilzh02,3,,6.99,cmj1u8rsz000suq8xpwhz1vkf,pending,,cs_test_a1n9HDhMq1Pp7Mc9Wv0U58dy0dNOEoleeNgommLscelTP7P5Mgm2bspGFO,2025-12-13T15:00:44.731000,cmj4f6wsv0000ph08hpi7y51e
+9.99,2025-12-13T15:24:59.934000,cmj4g65ct0003p308sybnml3o,3,,6.99,cmj1u8rsz000suq8xpwhz1vkf,pending,,cs_test_a11ljCApcFwiUrHuIOZIECmKEh8ZklBe2v3Yc2qGFiLRGQ4IEXYNMe41m4,2025-12-13T15:25:00.218000,cmj4f6wsv0000ph08hpi7y51e
+9.99,2025-12-13T15:25:38.118000,cmj4g6yth0005p308a74ot47y,3,,6.99,cmj1u8rsz000suq8xpwhz1vkf,pending,,cs_test_a1dLVEiVaN1USv58RDu0ZXNlhr9dgEq1hfk2T1eBqg9dvozc2XYpndq38U,2025-12-13T15:25:38.390000,cmj4f6wsv0000ph08hpi7y51e
+9.99,2025-12-13T15:40:25.322000,cmj4gpze20003mf08oqca0u5m,3,,6.99,cmj1u8rsz000suq8xpwhz1vkf,pending,,cs_test_a184JX9caA6xzQINJwcnMfY4H0RRSNNJJQi4UKASGOKioluI8P0uct3hdg,2025-12-13T15:40:25.606000,cmj4f6wsv0000ph08hpi7y51e
+29.99,2025-12-13T15:40:51.181000,cmj4gqjcd0007mf08blu9r5as,9,,20.99,cmj1u8rsw000juq8x20jenvd6,pending,,cs_test_a1Ob1vp60xxAbwnjSIAXMuJOSfqh1JccQyWKwWVd7YO3CtOix3gejDQ46n,2025-12-13T15:40:51.439000,cmj4f6wsv0000ph08hpi7y51e
+9.99,2025-12-13T15:55:05.302000,cmj4h8udy0003o308emlzv0k1,3,,6.99,cmj1u8rsz000suq8xpwhz1vkf,pending,,cs_test_a1DohisVpNqiFVBfit2bMmlYUBiXUViXwJeCMSTVs2rcnMEpQCcaa0SeEy,2025-12-13T15:55:05.576000,cmj4f6wsv0000ph08hpi7y51e
+9.99,2025-12-14T13:50:33.428000,cmj5s8jpv0003lg089ct2567k,3,,6.99,cmj1u8rsz000suq8xpwhz1vkf,pending,,cs_test_a1u6oc29bZUrSU6jDfspuNyvp9fQrSGCge53yijwiayPgZGtftK9hefHyv,2025-12-14T13:50:33.707000,cmj4f6wsv0000ph08hpi7y51e
+9.99,2025-12-14T14:07:45.589000,cmj5suo500007lg088x1v6oa3,3,,6.99,cmj1u8rsz000suq8xpwhz1vkf,pending,,cs_test_a13tjz3NkIr2KFj0U87qiIsZxOJepK9mtKr5ZaRRkq98qFaAzfDhSHUg3Y,2025-12-14T14:07:45.876000,cmj4f6wsv0000ph08hpi7y51e
